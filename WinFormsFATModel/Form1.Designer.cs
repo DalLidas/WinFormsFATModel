@@ -38,6 +38,8 @@
             addFile_button = new Button();
             updateGridPanel_button = new Button();
             directory_ListBox = new ListBox();
+            deleteAll_button = new Button();
+            addCluster_button = new Button();
             ((System.ComponentModel.ISupportInitialize)row_numericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)col_numericUpDown).BeginInit();
             SuspendLayout();
@@ -101,7 +103,7 @@
             // 
             // addFile_button
             // 
-            addFile_button.Location = new Point(599, 199);
+            addFile_button.Location = new Point(599, 256);
             addFile_button.Name = "addFile_button";
             addFile_button.Size = new Size(268, 23);
             addFile_button.TabIndex = 9;
@@ -129,11 +131,33 @@
             directory_ListBox.TabIndex = 14;
             directory_ListBox.SelectedIndexChanged += directory_ListBox_SelectedIndexChanged_1;
             // 
+            // deleteAll_button
+            // 
+            deleteAll_button.Location = new Point(599, 145);
+            deleteAll_button.Name = "deleteAll_button";
+            deleteAll_button.Size = new Size(268, 23);
+            deleteAll_button.TabIndex = 15;
+            deleteAll_button.Text = "Очистить всё";
+            deleteAll_button.UseVisualStyleBackColor = true;
+            deleteAll_button.Click += deleteAll_button_Click;
+            // 
+            // addCluster_button
+            // 
+            addCluster_button.Location = new Point(599, 285);
+            addCluster_button.Name = "addCluster_button";
+            addCluster_button.Size = new Size(268, 23);
+            addCluster_button.TabIndex = 16;
+            addCluster_button.Text = "Добавить кластер";
+            addCluster_button.UseVisualStyleBackColor = true;
+            addCluster_button.Click += addCluster_button_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(904, 461);
+            Controls.Add(addCluster_button);
+            Controls.Add(deleteAll_button);
             Controls.Add(directory_ListBox);
             Controls.Add(updateGridPanel_button);
             Controls.Add(addFile_button);
@@ -169,5 +193,7 @@
         private Button addFile_button;
         private Button updateGridPanel_button;
         private ListBox directory_ListBox;
+        private Button deleteAll_button;
+        private Button addCluster_button;
     }
 }

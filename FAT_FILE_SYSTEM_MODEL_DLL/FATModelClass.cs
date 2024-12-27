@@ -51,7 +51,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
     public class FATModelClass
     {
         //Размер файлового пространства
-        private readonly int fileSpaceSize;
+        private int fileSpaceSize;
 
         //Колекция для файловых дискрипторов
         private List<FileDеscriptor> directory { get; }
@@ -84,6 +84,50 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
             this.minSequenceRatio = 0.7;
         }
 
+        public void Resize(int newfileSpaceSize)
+        {
+            // Новый размер файловой системы
+            fileSpaceSize = newfileSpaceSize;
+
+            // Получаем текущие кластеры, которые могут влезть в новый размер
+            var currentClusterIDs = fileSpace.Keys.ToList();
+
+            // Удаляем все кластеры, которые выходят за пределы нового размера
+            var clustersToRemove = currentClusterIDs.Where(clusterID => clusterID >= fileSpaceSize).ToList();
+
+            foreach (var clusterID in clustersToRemove)
+            {
+                // Удаляем кластер из файлового пространства
+                fileSpace.Remove(clusterID);
+            }
+
+            // Обновляем файловые дескрипторы, чтобы они не ссылались на удалённые кластеры
+            for (int i = 0; i < directory.Count; i++)
+            {
+                var fileDescriptor = directory[i];
+
+                // Если StartClusterID выходит за пределы нового размера, сбрасываем его (или можно заново присваивать)
+                if (fileDescriptor.StartClusterID >= fileSpaceSize)
+                {
+                    fileDescriptor.StartClusterID = -1; // или другое значение по умолчанию
+                }
+            }
+
+            // Дополнительная логика обновления, если нужно
+            // Например, можно обновить ссылки на кластеры, если файл указывает на удалённые кластеры
+            var clusterValues = fileSpace.Values.ToList(); // Получаем список кластеров для последующего перебора
+            for (int i = 0; i < clusterValues.Count; i++)
+            {
+                var cluster = clusterValues[i];
+
+                if (cluster.NextClusterID.HasValue && cluster.NextClusterID.Value >= fileSpaceSize)
+                {
+                    cluster.NextClusterID = null; // Обнуляем ссылки на некорректные кластеры
+                }
+            }
+
+        }
+    
 
         #region CRUD functions
 
@@ -135,8 +179,13 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
         /// <param name="EOFFlag"></param>
         /// <param name="badFlag"></param>
         /// <returns></returns>
-        public string CreateCluster(int clusterID, int nextClusterID, bool EOFFlag, bool badFlag, bool forceModeFlag = false)
+        public string CreateCluster(int clusterID, int nextClusterID, bool EOFFlag = false, bool badFlag = false, bool forceModeFlag = false)
         {
+            if (clusterID == nextClusterID)
+            {
+                return "Ошибка: cсылка кластера на самого себя";
+            }
+            
             if (!forceModeFlag)
             {
                 // Проверка на границы обращения к файловому пространству, а также на существование кластера
@@ -145,45 +194,6 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
             }
 
             fileSpace[clusterID] = new Cluster(clusterID, nextClusterID, EOFFlag, badFlag);
-            return "";
-        }
-
-
-        /// <summary>
-        /// Создание конца файла
-        /// </summary>
-        /// <param name="clusterID"></param>
-        /// <returns></returns>
-        public string CreateEOFCluster(int clusterID, bool forceModeFlag = false)
-        {
-            if (!forceModeFlag)
-            {
-                // Проверка на границы обращения к файловому пространству, а также на существование кластера
-                string errMSG = CheckClaster(clusterID);
-                if (errMSG.Length != 0) return errMSG;
-            }
-
-            fileSpace[clusterID] = new Cluster(clusterID, null, true, false);
-            return "";
-        }
-
-
-        /// <summary>
-        /// Создание пустого кластера
-        /// </summary>
-        /// <param name="clusterID"></param>
-        /// <returns></returns>
-        public string CreateBabCluster(int clusterID, bool forceModeFlag = false)
-        {
-            if (!forceModeFlag)
-            {
-                // Проверка на границы обращения к файловому пространству, а также на существование кластера
-                string errMSG = CheckClaster(clusterID);
-                if (errMSG.Length != 0) return errMSG;
-            }
-
-
-            fileSpace[clusterID] = new Cluster(clusterID, null, false, true);
             return "";
         }
 
@@ -270,6 +280,19 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
             }
 
             directory.Remove(file);
+            return "";
+        }
+
+        /// <summary>
+        /// Удаление всего
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public string DeleteAll()
+        {
+            this.directory.Clear();
+            this.fileSpace.Clear();
+
             return "";
         }
 

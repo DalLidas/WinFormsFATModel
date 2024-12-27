@@ -22,6 +22,7 @@ namespace WinFormsFATModel
         private GridPanel gridPanel;
         //private Panel PlaceHolder_GridPanel;
 
+
         public Form1()
         {
             InitializeComponent();
@@ -46,10 +47,12 @@ namespace WinFormsFATModel
             gridPanel.ResizeGridToFit(PlaceHolder_GridPanel.ClientSize, (int)row_numericUpDown.Value, (int)col_numericUpDown.Value);
         }
 
+
         private void Form1_Load(object sender, EventArgs e)
         {
 
         }
+
 
         private void addFile_button_Click(object sender, EventArgs e)
         {
@@ -76,21 +79,55 @@ namespace WinFormsFATModel
             UpdateData();
         }
 
+
         private void updateGridPanel_button_Click(object sender, EventArgs e)
         {
-            rowCount = (int)row_numericUpDown.Value;
-            colCount = (int)col_numericUpDown.Value;
+            int buff_row = (int)row_numericUpDown.Value;
+            int buf_col = (int)col_numericUpDown.Value;
 
+            // Выход если система меньше оговорённой
+            if (buff_row * buf_col < minFileSpaceSize)
+            {
+                MessageBox.Show("Ошибка: минимальный размер файловой системы задан " + minFileSpaceSize.ToString());
+                return;
+            }
+
+            // Если размер файловой системы уменьшается, показываем предупреждение
+            if (rowCount * colCount > buff_row * buf_col)
+            {
+                DialogResult result = MessageBox.Show(
+                    "Внимание! Размер файловой системы будет уменьшен. Все данные, которые не влезут в новый размер, будут удалены. Вы уверены, что хотите продолжить?",
+                    "Предупреждение",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (result == DialogResult.No)
+                {
+                    return; // Прекращаем выполнение, если пользователь нажал "Нет"
+                }
+            }
+
+            // Обновляем количество строк и столбцов
+            rowCount = buff_row;
+            colCount = buf_col;
+
+            // Изменяем размер файловой системы
+            FAT.Resize(rowCount * colCount);
+
+            // Перерисовываем панель
             gridPanel.ResizeGridToFit(PlaceHolder_GridPanel.ClientSize, rowCount, colCount);
 
+            // Обновляем данные (например, обновляем отображение)
             UpdateData();
         }
+
 
         private void UpdateData()
         {
             UpdateGridPanel();
             UpdateDirectoryListBox();
         }
+
 
         private void UpdateGridPanel()
         {
@@ -140,7 +177,6 @@ namespace WinFormsFATModel
         }
 
 
-
         private void directory_ListBox_SelectedIndexChanged_1(object sender, EventArgs e)
         {
             // Регулярное выражение для извлечения StartClusterID
@@ -158,14 +194,14 @@ namespace WinFormsFATModel
                 {
                     // Извлекаем ID первого кластера
                     int startClusterID = int.Parse(match.Groups[1].Value);
-                    
+
                     // Очистить предыдущие выделения
                     gridPanel.ClearSelection();
 
                     // Подсветить кластеры, связанные с файлом (предполагаем, что кластеры идут подряд)
                     var (EOFFlag, clusterChain) = FAT.BuildClusterChain(startClusterID);
 
-                    foreach(int clusterID in clusterChain)
+                    foreach (int clusterID in clusterChain)
                     {
                         // Рассчитываем позицию ячейки
                         int row = clusterID / colCount;
@@ -185,6 +221,39 @@ namespace WinFormsFATModel
                 // Очистить предыдущие выделения
                 gridPanel.ClearSelection();
             }
+        }
+
+        private void deleteAll_button_Click(object sender, EventArgs e)
+        {
+            FAT.DeleteAll();
+        }
+
+        private void addCluster_button_Click(object sender, EventArgs e)
+        {
+            // Открываем форму ввода данных для кластера
+            var inputForm = new ClusterInputForm();
+            if (inputForm.ShowDialog() == DialogResult.OK)
+            {
+                // Получаем введенные данные
+                int clusterID = inputForm.ClusterID;
+                int nextClusterID = inputForm.NextClusterID;
+                bool EOFFlag = inputForm.EOFFlag;
+                bool badFlag = inputForm.BadFlag;
+                bool forceModeFlag = inputForm.ForceModeFlag;
+
+                // Вызов функции для создания кластера
+                string result =  FAT.CreateCluster(clusterID, nextClusterID, EOFFlag, badFlag, forceModeFlag);
+                if (!string.IsNullOrEmpty(result))
+                {
+                    MessageBox.Show(result);
+                }
+                else
+                {
+                    MessageBox.Show("Кластер успешно создан!");
+                }
+            }
+
+            UpdateData();
         }
     }
 
@@ -410,6 +479,119 @@ namespace WinFormsFATModel
                 .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(int.Parse)
                 .ToArray();
+        }
+    }
+
+    public class ClusterInputForm : Form
+    {
+        private NumericUpDown clusterIDNumericUpDown;
+        private NumericUpDown nextClusterIDNumericUpDown;
+        private CheckBox EOFFlagCheckBox;
+        private CheckBox badFlagCheckBox;
+        private CheckBox forceModeFlagCheckBox;
+        private Button okButton;
+        private Button cancelButton;
+
+        public int ClusterID { get; private set; }
+        public int NextClusterID { get; private set; }
+        public bool EOFFlag { get; private set; }
+        public bool BadFlag { get; private set; }
+        public bool ForceModeFlag { get; private set; }
+
+        public ClusterInputForm()
+        {
+            this.Text = "Ввод данных для кластера";
+            this.ClientSize = new Size(300, 200);
+
+            // Поле ввода ID кластера
+            var clusterIDLabel = new Label
+            {
+                Text = "ID кластера:",
+                Location = new Point(20, 20),
+                AutoSize = true
+            };
+            clusterIDNumericUpDown = new NumericUpDown
+            {
+                Location = new Point(120, 20),
+                Width = 150,
+                Minimum = 0
+            };
+
+            // Поле ввода ID следующего кластера
+            var nextClusterIDLabel = new Label
+            {
+                Text = "ID следующего\n кластера:",
+                Location = new Point(20, 60),
+                AutoSize = true
+            };
+            nextClusterIDNumericUpDown = new NumericUpDown
+            {
+                Location = new Point(120, 60),
+                Width = 150,
+                Minimum = 0
+            };
+
+            // Чекбокс для флага EOF
+            EOFFlagCheckBox = new CheckBox
+            {
+                Text = "EOF флаг",
+                Location = new Point(20, 100),
+                AutoSize = true
+            };
+
+            // Чекбокс для флага плохого кластера
+            badFlagCheckBox = new CheckBox
+            {
+                Text = "Плохой кластер",
+                Location = new Point(120, 100),
+                AutoSize = true
+            };
+
+            // Чекбокс для флага forceMode
+            forceModeFlagCheckBox = new CheckBox
+            {
+                Text = "Режим принудительного создания",
+                Location = new Point(20, 140),
+                AutoSize = true
+            };
+
+            // Кнопка OK
+            okButton = new Button
+            {
+                Text = "OK",
+                Location = new Point(50, 170),
+                DialogResult = DialogResult.OK
+            };
+            okButton.Click += OkButton_Click;
+
+            // Кнопка Cancel
+            cancelButton = new Button
+            {
+                Text = "Cancel",
+                Location = new Point(150, 170),
+                DialogResult = DialogResult.Cancel
+            };
+
+            // Добавляем элементы на форму
+            this.Controls.Add(clusterIDLabel);
+            this.Controls.Add(clusterIDNumericUpDown);
+            this.Controls.Add(nextClusterIDLabel);
+            this.Controls.Add(nextClusterIDNumericUpDown);
+            this.Controls.Add(EOFFlagCheckBox);
+            this.Controls.Add(badFlagCheckBox);
+            this.Controls.Add(forceModeFlagCheckBox);
+            this.Controls.Add(okButton);
+            this.Controls.Add(cancelButton);
+        }
+
+        private void OkButton_Click(object sender, EventArgs e)
+        {
+            // Собираем данные из полей ввода
+            ClusterID = (int)clusterIDNumericUpDown.Value;
+            NextClusterID = (int)nextClusterIDNumericUpDown.Value;
+            EOFFlag = EOFFlagCheckBox.Checked;
+            BadFlag = badFlagCheckBox.Checked;
+            ForceModeFlag = forceModeFlagCheckBox.Checked;
         }
     }
 }
