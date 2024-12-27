@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFormsFATModel", "WinFormsFATModel\WinFormsFATModel.csproj", "{B58C872C-CEB6-49E7-A2E4-A1696D6964C4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8A3D3149-406B-4C8B-8680-08D293058115} = {8A3D3149-406B-4C8B-8680-08D293058115}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FAT_FILE_SYSTEM_MODEL_DLL", "FAT_FILE_SYSTEM_MODEL_DLL\FAT_FILE_SYSTEM_MODEL_DLL.csproj", "{8A3D3149-406B-4C8B-8680-08D293058115}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B58C872C-CEB6-49E7-A2E4-A1696D6964C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B58C872C-CEB6-49E7-A2E4-A1696D6964C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B58C872C-CEB6-49E7-A2E4-A1696D6964C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B58C872C-CEB6-49E7-A2E4-A1696D6964C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A3D3149-406B-4C8B-8680-08D293058115}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A3D3149-406B-4C8B-8680-08D293058115}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A3D3149-406B-4C8B-8680-08D293058115}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A3D3149-406B-4C8B-8680-08D293058115}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CBE9B33A-40BB-4C79-9555-C340A56E251E}
+	EndGlobalSection
+EndGlobal
