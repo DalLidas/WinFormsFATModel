@@ -35,15 +35,18 @@
             row_label = new Label();
             col_label = new Label();
             main_label = new Label();
+            addFile_button = new Button();
+            updateGridPanel_button = new Button();
+            directory_ListBox = new ListBox();
             ((System.ComponentModel.ISupportInitialize)row_numericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)col_numericUpDown).BeginInit();
             SuspendLayout();
             // 
             // PlaceHolder_GridPanel
             // 
-            PlaceHolder_GridPanel.Location = new Point(12, 36);
+            PlaceHolder_GridPanel.Location = new Point(176, 36);
             PlaceHolder_GridPanel.Name = "PlaceHolder_GridPanel";
-            PlaceHolder_GridPanel.Size = new Size(525, 350);
+            PlaceHolder_GridPanel.Size = new Size(377, 391);
             PlaceHolder_GridPanel.TabIndex = 0;
             // 
             // menuStrip1
@@ -96,11 +99,44 @@
             main_label.TabIndex = 8;
             main_label.Text = "Меню FAT ";
             // 
+            // addFile_button
+            // 
+            addFile_button.Location = new Point(599, 199);
+            addFile_button.Name = "addFile_button";
+            addFile_button.Size = new Size(268, 23);
+            addFile_button.TabIndex = 9;
+            addFile_button.Text = "Добавить файл";
+            addFile_button.UseVisualStyleBackColor = true;
+            addFile_button.Click += addFile_button_Click;
+            // 
+            // updateGridPanel_button
+            // 
+            updateGridPanel_button.Location = new Point(599, 116);
+            updateGridPanel_button.Name = "updateGridPanel_button";
+            updateGridPanel_button.Size = new Size(268, 23);
+            updateGridPanel_button.TabIndex = 10;
+            updateGridPanel_button.Text = "Обновить таблицу";
+            updateGridPanel_button.UseVisualStyleBackColor = true;
+            updateGridPanel_button.Click += updateGridPanel_button_Click;
+            // 
+            // directory_ListBox
+            // 
+            directory_ListBox.FormattingEnabled = true;
+            directory_ListBox.ItemHeight = 15;
+            directory_ListBox.Location = new Point(12, 36);
+            directory_ListBox.Name = "directory_ListBox";
+            directory_ListBox.Size = new Size(151, 394);
+            directory_ListBox.TabIndex = 14;
+            directory_ListBox.SelectedIndexChanged += directory_ListBox_SelectedIndexChanged_1;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(904, 450);
+            ClientSize = new Size(904, 461);
+            Controls.Add(directory_ListBox);
+            Controls.Add(updateGridPanel_button);
+            Controls.Add(addFile_button);
             Controls.Add(main_label);
             Controls.Add(col_label);
             Controls.Add(row_label);
@@ -108,7 +144,10 @@
             Controls.Add(row_numericUpDown);
             Controls.Add(PlaceHolder_GridPanel);
             Controls.Add(menuStrip1);
+            ForeColor = Color.Black;
             MainMenuStrip = menuStrip1;
+            MaximumSize = new Size(920, 500);
+            MinimumSize = new Size(920, 500);
             Name = "Form1";
             Text = "FATModel";
             Load += Form1_Load;
@@ -127,5 +166,8 @@
         private Label row_label;
         private Label col_label;
         private Label main_label;
+        private Button addFile_button;
+        private Button updateGridPanel_button;
+        private ListBox directory_ListBox;
     }
 }

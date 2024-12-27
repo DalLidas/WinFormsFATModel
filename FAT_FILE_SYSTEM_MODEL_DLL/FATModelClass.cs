@@ -8,7 +8,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
     /// <summary>
     /// Структура для описания файла в дериктории
     /// </summary>
-    struct FileDеscriptor
+    public struct FileDеscriptor
     {
         public int ID = -1;
         public int StartClusterID = -1;
@@ -27,7 +27,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
     /// <summary>
     /// Структура для описания кластера в файловом пространстве
     /// </summary>
-    struct Cluster
+    public struct Cluster
     {
         public int ClusterID = -1;
         public int? NextClusterID = -1;
@@ -48,7 +48,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
     /// <summary>
     /// Модель, реализующая файловую систему FAT, а также методы анализа и взаимодействия с ней.
     /// </summary>
-    internal class FATModelClass
+    public class FATModelClass
     {
         //Размер файлового пространства
         private readonly int fileSpaceSize;
@@ -190,7 +190,19 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
         #endregion Create
 
         #region Read
+        //Колекция для файловых дискрипторов
+        public List<FileDеscriptor> GetDirectory()
+        {
+            return directory;
+        }
 
+
+        //Колекция для кластеров в файловом пространстве
+
+        public Dictionary<int, Cluster> GetFileSpace()
+        {
+            return fileSpace;
+        }
 
         #endregion Read
 
@@ -289,7 +301,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
         /// </summary>
         /// <param name="startingClusterID"></param>
         /// <returns></returns>
-        private (bool CorrectEOF, List<int> clasters) BuildClusterChain(int startingClusterID)
+        public (bool CorrectEOF, List<int> clasters) BuildClusterChain(int startingClusterID)
         {
             var chain = new List<int>();
             bool correctEOF = false;
@@ -479,12 +491,6 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
 
 
         #region Action
-
-        public void foo()
-        {
-            Console.WriteLine(FragmentFile(directory.Last(), 4));
-        }
-
 
         /// <summary>
         /// Дефрагментирует все файлы в файловой системе, пытаясь создать цельные цепочки кластеров.
