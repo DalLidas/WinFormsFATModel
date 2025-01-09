@@ -46,6 +46,8 @@
             freeSpace_button = new Button();
             FileSpace_label = new Label();
             Directory_label = new Label();
+            FileSpaceSize_label = new Label();
+            RemoveLostClusters_button = new Button();
             ((System.ComponentModel.ISupportInitialize)row_numericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)col_numericUpDown).BeginInit();
             SuspendLayout();
@@ -119,7 +121,7 @@
             // 
             // updateGridPanel_button
             // 
-            updateGridPanel_button.Location = new Point(599, 116);
+            updateGridPanel_button.Location = new Point(599, 139);
             updateGridPanel_button.Name = "updateGridPanel_button";
             updateGridPanel_button.Size = new Size(268, 23);
             updateGridPanel_button.TabIndex = 10;
@@ -139,7 +141,7 @@
             // 
             // deleteAll_button
             // 
-            deleteAll_button.Location = new Point(599, 145);
+            deleteAll_button.Location = new Point(599, 168);
             deleteAll_button.Name = "deleteAll_button";
             deleteAll_button.Size = new Size(268, 23);
             deleteAll_button.TabIndex = 15;
@@ -169,7 +171,7 @@
             // 
             // simpleDefragmentation_button
             // 
-            simpleDefragmentation_button.Location = new Point(599, 450);
+            simpleDefragmentation_button.Location = new Point(599, 475);
             simpleDefragmentation_button.Name = "simpleDefragmentation_button";
             simpleDefragmentation_button.Size = new Size(268, 23);
             simpleDefragmentation_button.TabIndex = 18;
@@ -179,7 +181,7 @@
             // 
             // fullDefragmentation_button
             // 
-            fullDefragmentation_button.Location = new Point(599, 479);
+            fullDefragmentation_button.Location = new Point(599, 504);
             fullDefragmentation_button.Name = "fullDefragmentation_button";
             fullDefragmentation_button.Size = new Size(268, 23);
             fullDefragmentation_button.TabIndex = 19;
@@ -217,11 +219,32 @@
             Directory_label.TabIndex = 22;
             Directory_label.Text = "Дериктория";
             // 
+            // FileSpaceSize_label
+            // 
+            FileSpaceSize_label.AutoSize = true;
+            FileSpaceSize_label.Location = new Point(615, 111);
+            FileSpaceSize_label.Name = "FileSpaceSize_label";
+            FileSpaceSize_label.Size = new Size(195, 15);
+            FileSpaceSize_label.TabIndex = 23;
+            FileSpaceSize_label.Text = "Размер файлового пространства: ";
+            // 
+            // RemoveLostClusters_button
+            // 
+            RemoveLostClusters_button.Location = new Point(599, 446);
+            RemoveLostClusters_button.Name = "RemoveLostClusters_button";
+            RemoveLostClusters_button.Size = new Size(268, 23);
+            RemoveLostClusters_button.TabIndex = 24;
+            RemoveLostClusters_button.Text = "Удаление потеряных файлов";
+            RemoveLostClusters_button.UseVisualStyleBackColor = true;
+            RemoveLostClusters_button.Click += RemoveLostClusters_button_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(904, 548);
+            ClientSize = new Size(904, 561);
+            Controls.Add(RemoveLostClusters_button);
+            Controls.Add(FileSpaceSize_label);
             Controls.Add(Directory_label);
             Controls.Add(FileSpace_label);
             Controls.Add(freeSpace_button);
@@ -242,7 +265,8 @@
             Controls.Add(menuStrip1);
             ForeColor = Color.Black;
             MainMenuStrip = menuStrip1;
-            MinimumSize = new Size(920, 500);
+            MaximumSize = new Size(920, 600);
+            MinimumSize = new Size(920, 600);
             Name = "Form1";
             Text = "FATModel";
             Load += Form1_Load;
@@ -272,5 +296,7 @@
         private Button freeSpace_button;
         private Label FileSpace_label;
         private Label Directory_label;
+        private Label FileSpaceSize_label;
+        private Button RemoveLostClusters_button;
     }
 }

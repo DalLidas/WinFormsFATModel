@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 
 namespace FAT_FILE_SYSTEM_MODEL_DLL
@@ -65,11 +66,11 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
 
 
         //Параметры для функции рекомендаций
-        private readonly int maxFragmentationCount = 3;
-        private readonly double minSequenceRatio = 0.7;
+        private readonly int maxFragmentationCount = 2;
+        private readonly double minSequenceRatio = 0.33;
 
 
-        public FATModelClass(int fileSpaceSize, int maxFragmentationCount = 3, double minSequenceRatio = 0.7)
+        public FATModelClass(int fileSpaceSize, int maxFragmentationCount = 2, double minSequenceRatio = 0.33)
         {
             if (fileSpaceSize <= 0) throw new ArgumentException("Размер файлового пространства доджен быть больше 0.");
 
@@ -80,8 +81,8 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
             this.lastDefragmentationAnalizeResult = new List<(string FileName, bool defragmentationNeededFlag, int MaxSequenceLength, int FragmentationCount, List<(int start, int end)> FragmentedBlocks)>();
 
             //Параметры для функции рекомендаций
-            this.maxFragmentationCount = 3;
-            this.minSequenceRatio = 0.7;
+            this.maxFragmentationCount = 2;
+            this.minSequenceRatio = 0.33;
         }
 
         public void Resize(int newfileSpaceSize)
@@ -395,6 +396,65 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
         #region Analize
 
         /// <summary>
+        /// Удаляет потерянные кластеры, а также файлы с некорректным окончанием (без EOF).
+        /// </summary>
+        /// <returns>Список удалённых кластеров и информации о файлах без EOF.</returns>
+        public (List<int> LostClusters, List<string> RemovedFiles) RemoveLostClusters()
+        {
+            var usedClusters = new HashSet<int>();
+            var lostClusters = new List<int>();
+            var removedFiles = new List<string>();
+
+            // Используем индексированный цикл, чтобы корректно удалять элементы из directory
+            for (int i = directory.Count - 1; i >= 0; i--)
+            {
+                var file = directory[i];
+                var (correctEOF, chain) = BuildClusterChain(file.StartClusterID);
+
+                if (!correctEOF)
+                {
+                    // Если файл без корректного EOF, удаляем его
+                    removedFiles.Add(file.Name);
+
+                    // Удаляем кластеры файла
+                    foreach (var clusterID in chain)
+                    {
+                        if (fileSpace.ContainsKey(clusterID))
+                        {
+                            fileSpace.Remove(clusterID);
+                        }
+                    }
+
+                    // Удаляем файл из директории
+                    directory.RemoveAt(i);
+                }
+                else
+                {
+                    // Добавляем кластеры файла в список используемых
+                    foreach (var clusterID in chain)
+                    {
+                        usedClusters.Add(clusterID);
+                    }
+                }
+            }
+
+            // Поиск потерянных кластеров (не задействованных ни в одном файле)
+            for (int i = 0; i < fileSpaceSize; i++)
+            {
+                if (fileSpace.ContainsKey(i) && !usedClusters.Contains(i) && !fileSpace[i].IsBad)
+                {
+                    lostClusters.Add(i);
+                    fileSpace.Remove(i);
+                }
+            }
+
+            return (lostClusters, removedFiles);
+        }
+
+
+
+
+        /// <summary>
         /// Возвращает данные о фрагментации файлового пространства для указанного файла.
         /// </summary>
         /// <param name="file">Файл, для которого выполняется анализ.</param>
@@ -475,7 +535,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
             int totalClusters = fragmentedBlocks.Sum(block => block.end - block.start + 1);
 
             // Условия для дефрагментации (есть ограничение по количесву ошибок и )
-            return fragmentationCount > maxFragmentationCount || maxSequenceLength < totalClusters * minSequenceRatio;
+            return fragmentationCount >= maxFragmentationCount || maxSequenceLength <= totalClusters * minSequenceRatio;
         }
 
         /// <summary>
@@ -688,9 +748,6 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
                 currentAddress += 1;
             }
 
-            // Обновление начального кластеров для файла
-            //directory[directory.FindIndex(x => x.ID == file.ID)] = new FileDеscriptor(file.ID, startAddress, file.Name);
-
             return ("", badClustersCounter);
         }
 
@@ -804,6 +861,47 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
 
 
         #region FormOutput
+
+        /// <summary>
+        /// Выводит информацию о потерянных кластерах и удалённых файлах с некорректным окончанием.
+        /// </summary>
+        /// <param name="lostClusters">Список потерянных кластеров.</param>
+        /// <param name="removedFiles">Список удалённых файлов.</param>
+        /// <returns>Текстовый отчёт.</returns>
+        public string PrintLostClustersAndRemovedFiles(List<int> lostClusters, List<string> removedFiles)
+        {
+            var msg = new StringBuilder();
+
+            if (removedFiles != null && removedFiles.Count > 0)
+            {
+                msg.AppendLine("Удалённые файлы с некорректным окончанием:");
+                foreach (var file in removedFiles)
+                {
+                    msg.AppendLine($"  - {file}");
+                }
+            }
+            else
+            {
+                msg.AppendLine("Нет удалённых файлов с некорректным окончанием.");
+            }
+
+            if (lostClusters != null && lostClusters.Count > 0)
+            {
+                msg.AppendLine("Удалённые потерянные кластеры:");
+                foreach (var clusterID in lostClusters)
+                {
+                    msg.AppendLine($"  - Кластер {clusterID}");
+                }
+            }
+            else
+            {
+                msg.AppendLine("Нет потерянных кластеров.");
+            }
+
+            return msg.ToString();
+        }
+
+
 
         /// <summary>
         /// Выводит данные о фрагментации файлового пространства.

@@ -27,9 +27,15 @@ namespace WinFormsFATModel
 
             this.FAT = new FATModelClass(fileSpaceSize, maxFragmentationCount, minSequenceRatio);
 
-            FAT.CreateFile("1", new int[] { 0, 3, 4, 5, 6, 10});
-            FAT.CreateCluster(2, 0, badFlag: true);
-            FAT.CreateFile("2", new int[] { 1, 7, 8, 9});
+            FAT.CreateFile("1", new int[] { 0, 2, 4, 5, 6, 10 });
+            FAT.CreateCluster(3, 0, badFlag: true);
+
+            FAT.CreateFile("2", new int[] { 1, 7, 8, 9 });
+
+            FAT.CreateCluster(16, 17, EOFFlag: true);
+            
+            FAT.CreateFile("3", new int[] { 19 });
+            FAT.CreateCluster(19, 18, forceModeFlag: true);
 
             // GridPanel
             gridPanel = new GridPanel();
@@ -47,6 +53,8 @@ namespace WinFormsFATModel
 
             // Инициализация начальной сетки
             gridPanel.ResizeGridToFit(PlaceHolder_GridPanel.ClientSize, (int)row_numericUpDown.Value, (int)col_numericUpDown.Value);
+
+            FileSpaceSize_label.Text = "Размер файлового пространства: " + (rowCount * colCount).ToString();
         }
 
 
@@ -120,6 +128,9 @@ namespace WinFormsFATModel
 
             // Перерисовываем панель
             gridPanel.ResizeGridToFit(PlaceHolder_GridPanel.ClientSize, rowCount, colCount);
+
+            // Обновление лейбла размера 
+            FileSpaceSize_label.Text = "Размер файлового пространства: " + (rowCount * colCount).ToString();
 
             // Обновляем данные (например, обновляем отображение)
             UpdateData();
@@ -310,7 +321,7 @@ namespace WinFormsFATModel
             List<int> freeClusters = FAT.GetFreeSpaceClasters();
 
             int freeClustersCount = freeClusters.Count;
-            string message = $"Количество свободных кластеров: {freeClustersCount}\n";
+            string message = $"Количество свободных кластеров: {freeClustersCount}/{colCount * rowCount}, {Math.Round((double)freeClustersCount / colCount / rowCount, 2) * 100}%\n";
 
             // Ограничение вывода до 40 кластеров
             int maxClustersToShow = 40;
@@ -330,6 +341,20 @@ namespace WinFormsFATModel
 
             // Выводим сообщение
             MessageBox.Show(message, "Свободные кластеры");
+        }
+
+        private void RemoveLostClusters_button_Click(object sender, EventArgs e)
+        {
+            // Удаляем потерянные кластеры и файлы без EOF
+            var (lostClusters, removedFiles) = FAT.RemoveLostClusters();
+
+            // Генерируем отчёт
+            string resultMessage = FAT.PrintLostClustersAndRemovedFiles(lostClusters, removedFiles);
+
+            // Отображаем результат
+            MessageBox.Show(resultMessage, "Результат удаления", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            UpdateData();
         }
     }
 
