@@ -20,14 +20,15 @@ namespace WinFormsFATModel
         FATModelClass FAT;
 
         private GridPanel gridPanel;
-        //private Panel PlaceHolder_GridPanel;
-
 
         public Form1()
         {
             InitializeComponent();
 
             this.FAT = new FATModelClass(fileSpaceSize, maxFragmentationCount, minSequenceRatio);
+
+            FAT.CreateFile("1", new int[] { 0, 2 , 3, 4, 5, 6, 10});
+            FAT.CreateFile("2", new int[] { 1, 7, 8, 9});
 
             // GridPanel
             gridPanel = new GridPanel();
@@ -61,7 +62,9 @@ namespace WinFormsFATModel
                 if (inputForm.ShowDialog() == DialogResult.OK)
                 {
                     string name = inputForm.FileName;
-                    int[] clusters = inputForm.Clusters;
+                    int[]? clusters = inputForm.Clusters;
+
+                    if (clusters is null) return;
 
                     // Пример вызова CreateFile
                     var result = FAT.CreateFile(name, clusters);
@@ -124,6 +127,7 @@ namespace WinFormsFATModel
 
         private void UpdateData()
         {
+            gridPanel.ResizeGridToFit(PlaceHolder_GridPanel.ClientSize, rowCount, colCount);
             UpdateGridPanel();
             UpdateDirectoryListBox();
         }
@@ -226,6 +230,7 @@ namespace WinFormsFATModel
         private void deleteAll_button_Click(object sender, EventArgs e)
         {
             FAT.DeleteAll();
+            UpdateData();
         }
 
         private void addCluster_button_Click(object sender, EventArgs e)
@@ -242,7 +247,7 @@ namespace WinFormsFATModel
                 bool forceModeFlag = inputForm.ForceModeFlag;
 
                 // Вызов функции для создания кластера
-                string result =  FAT.CreateCluster(clusterID, nextClusterID, EOFFlag, badFlag, forceModeFlag);
+                string result = FAT.CreateCluster(clusterID, nextClusterID, EOFFlag, badFlag, forceModeFlag);
                 if (!string.IsNullOrEmpty(result))
                 {
                     MessageBox.Show(result);
@@ -254,6 +259,73 @@ namespace WinFormsFATModel
             }
 
             UpdateData();
+        }
+
+        private void fragmentationAnalize_button_Click(object sender, EventArgs e)
+        {
+            if (gridPanel.Count() == 0)
+            {
+                MessageBox.Show("Файловая система пуста", "Предупреждение");
+                return;
+            }
+
+            string recomendationMSG = "";
+            var result = FAT.AnalyzeFragmentation();
+            MessageBox.Show(FAT.PrintFragmentationAnalyze(result), "Результат анализа фрагментации");
+
+            for (int i = 0; i < result.Count; ++i)
+            {
+                if (result[i].defragmentationNeededFlag)
+                {
+                    recomendationMSG += $"Файл {result[i].FileName} имеет большую дефрагментацию {result[i].FragmentationCount}. Рекомендуется дефрагментация\n";
+                }
+            }
+
+            if (recomendationMSG == "") MessageBox.Show("Файловая система находится в хорошем состоянии. В дефрагментации нет необходимости.\n", "Рекомендация по фрагментации");
+            else MessageBox.Show(recomendationMSG, "Рекомендация по фрагментации");
+        }
+
+        private void simpleDefragmentation_button_Click(object sender, EventArgs e)
+        {
+            FAT.SimpleDefragmentationFiles();
+
+            MessageBox.Show("Прошла попытка простой дефрагментации (поиск свободного меска и по позможности запись)", "Результат простой дефрагментации");
+
+            UpdateData();
+        }
+
+        private void fullDefragmentation_button_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(FAT.FullDefragmentationFiles(), "Результат полной дефрагментации");
+
+            UpdateData();
+        }
+
+        private void freeSpace_button_Click(object sender, EventArgs e)
+        {
+            List<int> freeClusters = FAT.GetFreeSpaceClasters();
+
+            int freeClustersCount = freeClusters.Count;
+            string message = $"Количество свободных кластеров: {freeClustersCount}\n";
+
+            // Ограничение вывода до 40 кластеров
+            int maxClustersToShow = 40;
+            int clustersToShow = Math.Min(freeClustersCount, maxClustersToShow);
+
+            // Добавляем информацию о первых 40 свободных кластерах
+            for (int i = 0; i < clustersToShow; i++)
+            {
+                message += $"Кластер {freeClusters[i]}\n";
+            }
+
+            // Если свободных кластеров больше 40, сообщаем об этом
+            if (freeClustersCount > maxClustersToShow)
+            {
+                message += $"\n(Показано только первые {maxClustersToShow} кластера)";
+            }
+
+            // Выводим сообщение
+            MessageBox.Show(message, "Свободные кластеры");
         }
     }
 
@@ -379,6 +451,12 @@ namespace WinFormsFATModel
             Invalidate(); // Перерисовываем панель
         }
 
+        // Метод для вывода кол-ва элементов
+        public int Count()
+        {
+            return cells.Count;
+        }
+
         private Cell GetCell(int row, int col)
         {
             if (!cells.TryGetValue((row, col), out var cell))
@@ -404,7 +482,7 @@ namespace WinFormsFATModel
         private Button cancelButton;
 
         public string FileName { get; private set; }
-        public int[] Clusters { get; private set; }
+        public int[]? Clusters { get; private set; }
 
 
         public FileInputForm()
@@ -413,6 +491,9 @@ namespace WinFormsFATModel
             this.ClientSize = new Size(400, 180);
             this.FormBorderStyle = FormBorderStyle.FixedDialog; // Запрет изменения размеров
             this.MaximizeBox = false; // Запрет на кнопку максимизации
+
+            FileName = "";
+            Clusters = null;
 
             // Поле ввода имени файла
             var fileNameLabel = new Label
@@ -472,14 +553,45 @@ namespace WinFormsFATModel
             this.Controls.Add(cancelButton);
         }
 
-        private void OkButton_Click(object sender, EventArgs e)
+        private void OkButton_Click(object? sender, EventArgs e)
         {
+            // Получаем имя файла и удаляем лишние пробелы
             FileName = fileNameTextBox.Text.Trim();
-            Clusters = clustersTextBox.Text
-                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(int.Parse)
-                .ToArray();
+
+            // Проверяем, что имя файла не пустое
+            if (string.IsNullOrEmpty(FileName))
+            {
+                MessageBox.Show("Имя файла не может быть пустым.");
+                return;
+            }
+
+            // Разбиваем строку на элементы и проверяем их на валидность
+            var clusterStrings = clustersTextBox.Text
+                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Преобразуем строковые значения в целые числа
+            int buff;
+            for (int i = 0; i < clusterStrings.Length; i++)
+            {
+                if (!int.TryParse(clusterStrings[i], out buff))
+                {
+                    MessageBox.Show($"Ошибка ввода: '{clusterStrings[i]}' не является допустимым числом.");
+                    return;
+                }
+            }
+
+            // Преобразуем строковые значения в целые числа
+            Clusters = new int[clusterStrings.Length];
+            for (int i = 0; i < clusterStrings.Length; i++)
+            {
+                if (!int.TryParse(clusterStrings[i], out Clusters[i]))
+                {
+                    MessageBox.Show($"Ошибка ввода: '{clusterStrings[i]}' не является допустимым числом.");
+                    return;
+                }
+            }
         }
+
     }
 
     public class ClusterInputForm : Form
@@ -584,7 +696,7 @@ namespace WinFormsFATModel
             this.Controls.Add(cancelButton);
         }
 
-        private void OkButton_Click(object sender, EventArgs e)
+        private void OkButton_Click(object? sender, EventArgs e)
         {
             // Собираем данные из полей ввода
             ClusterID = (int)clusterIDNumericUpDown.Value;

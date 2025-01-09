@@ -40,6 +40,10 @@
             directory_ListBox = new ListBox();
             deleteAll_button = new Button();
             addCluster_button = new Button();
+            fragmentationAnalize_button = new Button();
+            simpleDefragmentation_button = new Button();
+            fullDefragmentation_button = new Button();
+            freeSpace_button = new Button();
             ((System.ComponentModel.ISupportInitialize)row_numericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)col_numericUpDown).BeginInit();
             SuspendLayout();
@@ -103,7 +107,7 @@
             // 
             // addFile_button
             // 
-            addFile_button.Location = new Point(599, 256);
+            addFile_button.Location = new Point(599, 219);
             addFile_button.Name = "addFile_button";
             addFile_button.Size = new Size(268, 23);
             addFile_button.TabIndex = 9;
@@ -143,7 +147,7 @@
             // 
             // addCluster_button
             // 
-            addCluster_button.Location = new Point(599, 285);
+            addCluster_button.Location = new Point(599, 248);
             addCluster_button.Name = "addCluster_button";
             addCluster_button.Size = new Size(268, 23);
             addCluster_button.TabIndex = 16;
@@ -151,11 +155,55 @@
             addCluster_button.UseVisualStyleBackColor = true;
             addCluster_button.Click += addCluster_button_Click;
             // 
+            // fragmentationAnalize_button
+            // 
+            fragmentationAnalize_button.Location = new Point(599, 347);
+            fragmentationAnalize_button.Name = "fragmentationAnalize_button";
+            fragmentationAnalize_button.Size = new Size(268, 23);
+            fragmentationAnalize_button.TabIndex = 17;
+            fragmentationAnalize_button.Text = "Анализ фрагментации";
+            fragmentationAnalize_button.UseVisualStyleBackColor = true;
+            fragmentationAnalize_button.Click += fragmentationAnalize_button_Click;
+            // 
+            // simpleDefragmentation_button
+            // 
+            simpleDefragmentation_button.Location = new Point(599, 376);
+            simpleDefragmentation_button.Name = "simpleDefragmentation_button";
+            simpleDefragmentation_button.Size = new Size(268, 23);
+            simpleDefragmentation_button.TabIndex = 18;
+            simpleDefragmentation_button.Text = "Простая дефрагментации";
+            simpleDefragmentation_button.UseVisualStyleBackColor = true;
+            simpleDefragmentation_button.Click += simpleDefragmentation_button_Click;
+            // 
+            // fullDefragmentation_button
+            // 
+            fullDefragmentation_button.Location = new Point(599, 405);
+            fullDefragmentation_button.Name = "fullDefragmentation_button";
+            fullDefragmentation_button.Size = new Size(268, 23);
+            fullDefragmentation_button.TabIndex = 19;
+            fullDefragmentation_button.Text = "Полная дефрагментации";
+            fullDefragmentation_button.UseVisualStyleBackColor = true;
+            fullDefragmentation_button.Click += fullDefragmentation_button_Click;
+            // 
+            // freeSpace_button
+            // 
+            freeSpace_button.Location = new Point(599, 318);
+            freeSpace_button.Name = "freeSpace_button";
+            freeSpace_button.Size = new Size(268, 23);
+            freeSpace_button.TabIndex = 20;
+            freeSpace_button.Text = "Анализ свободного места";
+            freeSpace_button.UseVisualStyleBackColor = true;
+            freeSpace_button.Click += freeSpace_button_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(904, 461);
+            Controls.Add(freeSpace_button);
+            Controls.Add(fullDefragmentation_button);
+            Controls.Add(simpleDefragmentation_button);
+            Controls.Add(fragmentationAnalize_button);
             Controls.Add(addCluster_button);
             Controls.Add(deleteAll_button);
             Controls.Add(directory_ListBox);
@@ -195,5 +243,9 @@
         private ListBox directory_ListBox;
         private Button deleteAll_button;
         private Button addCluster_button;
+        private Button fragmentationAnalize_button;
+        private Button simpleDefragmentation_button;
+        private Button fullDefragmentation_button;
+        private Button freeSpace_button;
     }
 }
