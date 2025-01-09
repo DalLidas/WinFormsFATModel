@@ -27,7 +27,8 @@ namespace WinFormsFATModel
 
             this.FAT = new FATModelClass(fileSpaceSize, maxFragmentationCount, minSequenceRatio);
 
-            FAT.CreateFile("1", new int[] { 0, 2 , 3, 4, 5, 6, 10});
+            FAT.CreateFile("1", new int[] { 0, 3, 4, 5, 6, 10});
+            FAT.CreateCluster(2, 0, badFlag: true);
             FAT.CreateFile("2", new int[] { 1, 7, 8, 9});
 
             // GridPanel
@@ -130,6 +131,8 @@ namespace WinFormsFATModel
             gridPanel.ResizeGridToFit(PlaceHolder_GridPanel.ClientSize, rowCount, colCount);
             UpdateGridPanel();
             UpdateDirectoryListBox();
+
+            gridPanel.ClearSelection();
         }
 
 
@@ -231,6 +234,7 @@ namespace WinFormsFATModel
         {
             FAT.DeleteAll();
             UpdateData();
+            gridPanel.ClearSelection();
         }
 
         private void addCluster_button_Click(object sender, EventArgs e)

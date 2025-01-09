@@ -44,15 +44,17 @@
             simpleDefragmentation_button = new Button();
             fullDefragmentation_button = new Button();
             freeSpace_button = new Button();
+            FileSpace_label = new Label();
+            Directory_label = new Label();
             ((System.ComponentModel.ISupportInitialize)row_numericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)col_numericUpDown).BeginInit();
             SuspendLayout();
             // 
             // PlaceHolder_GridPanel
             // 
-            PlaceHolder_GridPanel.Location = new Point(176, 36);
+            PlaceHolder_GridPanel.Location = new Point(176, 58);
             PlaceHolder_GridPanel.Name = "PlaceHolder_GridPanel";
-            PlaceHolder_GridPanel.Size = new Size(377, 391);
+            PlaceHolder_GridPanel.Size = new Size(377, 469);
             PlaceHolder_GridPanel.TabIndex = 0;
             // 
             // menuStrip1
@@ -129,9 +131,9 @@
             // 
             directory_ListBox.FormattingEnabled = true;
             directory_ListBox.ItemHeight = 15;
-            directory_ListBox.Location = new Point(12, 36);
+            directory_ListBox.Location = new Point(12, 58);
             directory_ListBox.Name = "directory_ListBox";
-            directory_ListBox.Size = new Size(151, 394);
+            directory_ListBox.Size = new Size(151, 469);
             directory_ListBox.TabIndex = 14;
             directory_ListBox.SelectedIndexChanged += directory_ListBox_SelectedIndexChanged_1;
             // 
@@ -157,7 +159,7 @@
             // 
             // fragmentationAnalize_button
             // 
-            fragmentationAnalize_button.Location = new Point(599, 347);
+            fragmentationAnalize_button.Location = new Point(599, 371);
             fragmentationAnalize_button.Name = "fragmentationAnalize_button";
             fragmentationAnalize_button.Size = new Size(268, 23);
             fragmentationAnalize_button.TabIndex = 17;
@@ -167,7 +169,7 @@
             // 
             // simpleDefragmentation_button
             // 
-            simpleDefragmentation_button.Location = new Point(599, 376);
+            simpleDefragmentation_button.Location = new Point(599, 450);
             simpleDefragmentation_button.Name = "simpleDefragmentation_button";
             simpleDefragmentation_button.Size = new Size(268, 23);
             simpleDefragmentation_button.TabIndex = 18;
@@ -177,7 +179,7 @@
             // 
             // fullDefragmentation_button
             // 
-            fullDefragmentation_button.Location = new Point(599, 405);
+            fullDefragmentation_button.Location = new Point(599, 479);
             fullDefragmentation_button.Name = "fullDefragmentation_button";
             fullDefragmentation_button.Size = new Size(268, 23);
             fullDefragmentation_button.TabIndex = 19;
@@ -187,7 +189,7 @@
             // 
             // freeSpace_button
             // 
-            freeSpace_button.Location = new Point(599, 318);
+            freeSpace_button.Location = new Point(599, 342);
             freeSpace_button.Name = "freeSpace_button";
             freeSpace_button.Size = new Size(268, 23);
             freeSpace_button.TabIndex = 20;
@@ -195,11 +197,33 @@
             freeSpace_button.UseVisualStyleBackColor = true;
             freeSpace_button.Click += freeSpace_button_Click;
             // 
+            // FileSpace_label
+            // 
+            FileSpace_label.AutoSize = true;
+            FileSpace_label.Font = new Font("Segoe UI", 10F);
+            FileSpace_label.Location = new Point(297, 37);
+            FileSpace_label.Name = "FileSpace_label";
+            FileSpace_label.Size = new Size(161, 19);
+            FileSpace_label.TabIndex = 21;
+            FileSpace_label.Text = "Файловое пространство";
+            // 
+            // Directory_label
+            // 
+            Directory_label.AutoSize = true;
+            Directory_label.Font = new Font("Segoe UI", 10F);
+            Directory_label.Location = new Point(40, 37);
+            Directory_label.Name = "Directory_label";
+            Directory_label.Size = new Size(86, 19);
+            Directory_label.TabIndex = 22;
+            Directory_label.Text = "Дериктория";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(904, 461);
+            ClientSize = new Size(904, 548);
+            Controls.Add(Directory_label);
+            Controls.Add(FileSpace_label);
             Controls.Add(freeSpace_button);
             Controls.Add(fullDefragmentation_button);
             Controls.Add(simpleDefragmentation_button);
@@ -218,7 +242,6 @@
             Controls.Add(menuStrip1);
             ForeColor = Color.Black;
             MainMenuStrip = menuStrip1;
-            MaximumSize = new Size(920, 500);
             MinimumSize = new Size(920, 500);
             Name = "Form1";
             Text = "FATModel";
@@ -247,5 +270,7 @@
         private Button simpleDefragmentation_button;
         private Button fullDefragmentation_button;
         private Button freeSpace_button;
+        private Label FileSpace_label;
+        private Label Directory_label;
     }
 }

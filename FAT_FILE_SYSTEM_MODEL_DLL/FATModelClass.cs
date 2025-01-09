@@ -228,6 +228,11 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
             //Проверка на перезаписывание на одном месте
             if (cluster.ClusterID == newClusterID) return;
 
+            if (fileSpace[cluster.ClusterID].IsBad)
+            {
+                throw new Exception("Попытка переместить испорченный кластер");
+            }
+
             // Переместить данные из занятого кластера в новый
             fileSpace[newClusterID] = new Cluster(newClusterID, cluster.NextClusterID, cluster.IsEOF, cluster.IsBad);
 
@@ -542,15 +547,23 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
                 }
 
                 // Пытаемся переместить файл на текущую позицию
-                string result = FragmentFile(file, currentCluster);
+                (string result, int badClustersCounter) = FragmentFile(file, currentCluster);
                 if (string.IsNullOrEmpty(result))
                 {
+                    file = directory.FirstOrDefault(f => f.ID == nextFileId);
+                    if (file.ID == -1)
+                    {
+                        msg += $"Файл с ID {nextFileId} не найден.\n";
+                        continue;
+                    }
+
                     msg += $"Файл {file.Name} успешно дефрагментирован начиная с кластера {currentCluster}.\n";
+
 
                     var (EOF, clusterChain) = BuildClusterChain(file.StartClusterID);
 
                     // Если успешное перемещение, увеличиваем указатель
-                    currentCluster += clusterChain.Count;
+                    currentCluster += clusterChain.Count + badClustersCounter;
 
                 }
                 else
@@ -608,29 +621,45 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
         /// </summary>
         /// <param name="file">Файл, который нужно фрагментировать.</param>
         /// <param name="startAddress">Начальный адрес для записи.</param>
-        public string FragmentFile(FileDеscriptor file, int startAddress)
+        public (string, int) FragmentFile(FileDеscriptor file, int startAddress)
         {
             var (EOFFlag, clusterChain) = BuildClusterChain(file.StartClusterID);
-            if (!EOFFlag) return "Файл \"{file.Name}\" повреждён.\n"; ;
+            if (!EOFFlag) return ("Файл \"{file.Name}\" повреждён.\n", 0); ;
             if (clusterChain.Count == 0)
             {
-                return $"Файл {file.Name} не содержит данных.\n";
+                return ($"Файл {file.Name} не содержит данных.\n", 0);
             }
 
-            if (startAddress < 0) return $"индекс стартого кластер {startAddress} не может быть отрицательным\n";
-            if (startAddress + clusterChain.Count + 1 >= fileSpaceSize) return $"Файл {file.Name} не вмещается в файловое пространство.\n";
+            if (startAddress < 0) return ($"индекс стартого кластер {startAddress} не может быть отрицательным\n", 0);
+            if (startAddress + clusterChain.Count + 1 >= fileSpaceSize) return ($"Файл {file.Name} не вмещается в файловое пространство.\n", 0);
 
             int currentAddress = startAddress;
+            int badClustersCounter = 0;
             for (int i = 0; i < clusterChain.Count; i++)
             {
+                // Проверка на плохие файлы
+                while (true)
+                {
+                    // Пропуск плохого кластера
+                    if (fileSpace.ContainsKey(currentAddress) && fileSpace[currentAddress].IsBad)
+                    {
+                        currentAddress += 1;
+                        badClustersCounter += 1;
+                        continue;
+                    }
+                    
+                    break;
+                }
+               
+
                 // Если текущий адрес уже занят, переместим данные в первую свободную область с конца
                 if (currentAddress != clusterChain[i] && fileSpace.ContainsKey(currentAddress))
                 {
                     int freeCluster = FindFirstFreeClusterFromEnd();
                     if (freeCluster == -1)
                     {
-                        return "Недостаточно места для фрагментации файла.\n";
-                    }
+                        return ("Недостаточно места для фрагментации файла.\n", 0);
+        }
 
                     // Обновление цепочки кластеров файла
                     if (clusterChain.Contains(currentAddress))
@@ -647,6 +676,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
 
                     // Записать текущий кластер файла на указанный адрес + Обновление цепочки
                     ReplocateClasterUpdateConnection(fileSpace[clusterChain[i]], currentAddress);
+                    clusterChain[i] = currentAddress;
                 }
                 else
                 {
@@ -659,9 +689,9 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
             }
 
             // Обновление начального кластеров для файла
-            directory[directory.FindIndex(x => x.ID == file.ID)] = new FileDеscriptor(file.ID, startAddress, file.Name);
+            //directory[directory.FindIndex(x => x.ID == file.ID)] = new FileDеscriptor(file.ID, startAddress, file.Name);
 
-            return "";
+            return ("", badClustersCounter);
         }
 
 
@@ -758,6 +788,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
 
                     // Перемещение кластера файла на нужное, освобождённое место
                     ReplocateClasterUpdateConnection(fileSpace[clusterChain[i]], newClusterID);
+                    clusterChain[i] = newClusterID;
                 }
                 else
                 {
