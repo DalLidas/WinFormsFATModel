@@ -1,4 +1,5 @@
 ﻿using FAT_FILE_SYSTEM_MODEL_DLL;
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -33,7 +34,7 @@ namespace WinFormsFATModel
             FAT.CreateFile("2", new int[] { 1, 7, 8, 9 });
 
             FAT.CreateCluster(16, 17, EOFFlag: true);
-            
+
             FAT.CreateFile("3", new int[] { 19 });
             FAT.CreateCluster(19, 18, forceModeFlag: true);
 
@@ -302,15 +303,102 @@ namespace WinFormsFATModel
 
         private void simpleDefragmentation_button_Click(object sender, EventArgs e)
         {
+            // Анализируем потерянные кластеры и файлы без EOF
+            var (lostClusters, filesWithoutEOF) = FAT.AnalyzeLostClusters();
+
+            if ((lostClusters != null && lostClusters.Count > 0) || (filesWithoutEOF != null && filesWithoutEOF.Count > 0))
+            {
+                // Формируем сообщение о найденных проблемах
+                string message = "В файловой системе найдены проблемы:\n\n";
+
+                if (lostClusters != null && lostClusters.Count > 0)
+                {
+                    message += $"- Потерянные кластеры: {lostClusters.Count}.\n";
+                }
+
+                if (filesWithoutEOF != null && filesWithoutEOF.Count > 0)
+                {
+                    message += $"- Файлы без корректного завершения (EOF): {filesWithoutEOF.Count}.\n";
+                }
+
+                message += "\nХотите удалить потерянные кластеры и файлы без EOF? Это рекомендуется, чтобы избежать возможных ошибок при дефрагментации.";
+
+                // Показываем диалоговое окно с выбором
+                var result = MessageBox.Show(message, "Обнаружены проблемы", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                if (result == DialogResult.Yes)
+                {
+                    // Удаляем потерянные кластеры и файлы без EOF
+                    var (removedLostClusters, removedFiles) = FAT.RemoveLostClusters();
+
+                    // Генерируем отчёт
+                    string resultMessage = FAT.PrintLostClustersAndRemovedFiles(removedLostClusters, removedFiles);
+
+                    // Отображаем результат удаления
+                    MessageBox.Show(resultMessage, "Результат удаления", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    // Сообщение об отказе от удаления
+                    MessageBox.Show("Вы отказались удалять потерянные кластеры и файлы без EOF.\nРезультаты дефрагментации могут быть некорректными.",
+                        "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
+            // Выполняем простую дефрагментацию
             FAT.SimpleDefragmentationFiles();
 
-            MessageBox.Show("Прошла попытка простой дефрагментации (поиск свободного меска и по позможности запись)", "Результат простой дефрагментации");
+            MessageBox.Show("Прошла попытка простой дефрагментации (поиск свободного места и по возможности запись).", "Результат простой дефрагментации");
 
+            // Обновляем данные
             UpdateData();
         }
 
+
         private void fullDefragmentation_button_Click(object sender, EventArgs e)
         {
+            // Анализируем потерянные кластеры и файлы без EOF
+            var (lostClusters, filesWithoutEOF) = FAT.AnalyzeLostClusters();
+
+            if ((lostClusters != null && lostClusters.Count > 0) || (filesWithoutEOF != null && filesWithoutEOF.Count > 0))
+            {
+                // Формируем сообщение о найденных проблемах
+                string message = "В файловой системе найдены проблемы:\n\n";
+
+                if (lostClusters != null && lostClusters.Count > 0)
+                {
+                    message += $"- Потерянные кластеры: {lostClusters.Count}.\n";
+                }
+
+                if (filesWithoutEOF != null && filesWithoutEOF.Count > 0)
+                {
+                    message += $"- Файлы без корректного завершения (EOF): {filesWithoutEOF.Count}.\n";
+                }
+
+                message += "\nХотите удалить потерянные кластеры и файлы без EOF? Это рекомендуется, чтобы избежать возможных ошибок при дефрагментации.";
+
+                // Показываем диалоговое окно с выбором
+                var result = MessageBox.Show(message, "Обнаружены проблемы", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                if (result == DialogResult.Yes)
+                {
+                    // Удаляем потерянные кластеры и файлы без EOF
+                    var (removedLostClusters, removedFiles) = FAT.RemoveLostClusters();
+
+                    // Генерируем отчёт
+                    string resultMessage = FAT.PrintLostClustersAndRemovedFiles(removedLostClusters, removedFiles);
+
+                    // Отображаем результат удаления
+                    MessageBox.Show(resultMessage, "Результат удаления", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    // Сообщение об отказе от удаления
+                    MessageBox.Show("Вы отказались удалять потерянные кластеры и файлы без EOF.\nРезультаты дефрагментации могут быть некорректными.",
+                        "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
             MessageBox.Show(FAT.FullDefragmentationFiles(), "Результат полной дефрагментации");
 
             UpdateData();
@@ -355,6 +443,16 @@ namespace WinFormsFATModel
             MessageBox.Show(resultMessage, "Результат удаления", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             UpdateData();
+        }
+
+        private void обАвтореToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Реализовал програмное решение студент 423 группы\nМухаметов Данил Ильнурович", "Об авторе");
+        }
+
+        private void справкаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Windows.Forms.Help.ShowHelp(this, Application.StartupPath + @"\" + "FATModel.chm");
         }
     }
 

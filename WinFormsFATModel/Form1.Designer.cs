@@ -30,6 +30,9 @@
         {
             PlaceHolder_GridPanel = new Panel();
             menuStrip1 = new MenuStrip();
+            cToolStripMenuItem = new ToolStripMenuItem();
+            справкаToolStripMenuItem = new ToolStripMenuItem();
+            обАвтореToolStripMenuItem = new ToolStripMenuItem();
             row_numericUpDown = new NumericUpDown();
             col_numericUpDown = new NumericUpDown();
             row_label = new Label();
@@ -48,6 +51,7 @@
             Directory_label = new Label();
             FileSpaceSize_label = new Label();
             RemoveLostClusters_button = new Button();
+            menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)row_numericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)col_numericUpDown).BeginInit();
             SuspendLayout();
@@ -61,11 +65,33 @@
             // 
             // menuStrip1
             // 
+            menuStrip1.Items.AddRange(new ToolStripItem[] { cToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(904, 24);
             menuStrip1.TabIndex = 3;
             menuStrip1.Text = "menuStrip1";
+            // 
+            // cToolStripMenuItem
+            // 
+            cToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { справкаToolStripMenuItem, обАвтореToolStripMenuItem });
+            cToolStripMenuItem.Name = "cToolStripMenuItem";
+            cToolStripMenuItem.Size = new Size(53, 20);
+            cToolStripMenuItem.Text = "Меню";
+            // 
+            // справкаToolStripMenuItem
+            // 
+            справкаToolStripMenuItem.Name = "справкаToolStripMenuItem";
+            справкаToolStripMenuItem.Size = new Size(180, 22);
+            справкаToolStripMenuItem.Text = "Справка";
+            справкаToolStripMenuItem.Click += справкаToolStripMenuItem_Click;
+            // 
+            // обАвтореToolStripMenuItem
+            // 
+            обАвтореToolStripMenuItem.Name = "обАвтореToolStripMenuItem";
+            обАвтореToolStripMenuItem.Size = new Size(180, 22);
+            обАвтореToolStripMenuItem.Text = "Об авторе";
+            обАвтореToolStripMenuItem.Click += обАвтореToolStripMenuItem_Click;
             // 
             // row_numericUpDown
             // 
@@ -111,7 +137,7 @@
             // 
             // addFile_button
             // 
-            addFile_button.Location = new Point(599, 219);
+            addFile_button.Location = new Point(599, 240);
             addFile_button.Name = "addFile_button";
             addFile_button.Size = new Size(268, 23);
             addFile_button.TabIndex = 9;
@@ -151,7 +177,7 @@
             // 
             // addCluster_button
             // 
-            addCluster_button.Location = new Point(599, 248);
+            addCluster_button.Location = new Point(599, 269);
             addCluster_button.Name = "addCluster_button";
             addCluster_button.Size = new Size(268, 23);
             addCluster_button.TabIndex = 16;
@@ -270,6 +296,8 @@
             Name = "Form1";
             Text = "FATModel";
             Load += Form1_Load;
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)row_numericUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)col_numericUpDown).EndInit();
             ResumeLayout(false);
@@ -298,5 +326,8 @@
         private Label Directory_label;
         private Label FileSpaceSize_label;
         private Button RemoveLostClusters_button;
+        private ToolStripMenuItem cToolStripMenuItem;
+        private ToolStripMenuItem справкаToolStripMenuItem;
+        private ToolStripMenuItem обАвтореToolStripMenuItem;
     }
 }

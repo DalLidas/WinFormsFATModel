@@ -32,14 +32,16 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
     {
         public int ClusterID = -1;
         public int? NextClusterID = -1;
+        public string data = "";
         public bool IsEOF = true;
         public bool IsBad = true;
 
 
-        public Cluster(int ClusterID, int? NextClusterID, bool IsEOF = false, bool IsBad = false)
+        public Cluster(int ClusterID, int? NextClusterID, string data="", bool IsEOF = false, bool IsBad = false)
         {
             this.ClusterID = ClusterID;
             this.NextClusterID = NextClusterID;
+            this.data = data;
             this.IsEOF = IsEOF;
             this.IsBad = IsBad;
         }
@@ -165,7 +167,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
             }
 
             //Последний кластер как EOF
-            fileSpace[clusters[^1]] = new Cluster(clusters[^1], null, true);
+            fileSpace[clusters[^1]] = new Cluster(clusters[^1], null, "", true);
 
             directory.Add(new FileDеscriptor(directory.Count + 1, startCluster, name));
 
@@ -194,7 +196,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
                 if (errMSG.Length != 0) return errMSG;
             }
 
-            fileSpace[clusterID] = new Cluster(clusterID, nextClusterID, EOFFlag, badFlag);
+            fileSpace[clusterID] = new Cluster(clusterID, nextClusterID, "", EOFFlag, badFlag);
             return "";
         }
 
@@ -235,7 +237,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
             }
 
             // Переместить данные из занятого кластера в новый
-            fileSpace[newClusterID] = new Cluster(newClusterID, cluster.NextClusterID, cluster.IsEOF, cluster.IsBad);
+            fileSpace[newClusterID] = new Cluster(newClusterID, cluster.NextClusterID, "", cluster.IsEOF, cluster.IsBad);
 
             // Проверить, если кластер является начальным для какого-либо файла
             for (int i = 0; i < directory.Count; i++)
@@ -254,7 +256,7 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
                 if (fileSpace.ContainsKey(i) && fileSpace[i].NextClusterID == cluster.ClusterID)
                 {
                     Cluster editedCluster = fileSpace[i];
-                    fileSpace[i] = new Cluster(i, newClusterID, editedCluster.IsEOF, editedCluster.IsBad);
+                    fileSpace[i] = new Cluster(i, newClusterID, "", editedCluster.IsEOF, editedCluster.IsBad);
                     break;
                 }
             }
@@ -394,6 +396,47 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
 
 
         #region Analize
+        /// <summary>
+        /// Анализирует файловую систему на наличие потерянных кластеров и файлов с некорректным окончанием (без EOF),
+        /// без удаления данных.
+        /// </summary>
+        /// <returns>Список потерянных кластеров и файлов без EOF.</returns>
+        public (List<int> LostClusters, List<string> FilesWithoutEOF) AnalyzeLostClusters()
+        {
+            var usedClusters = new HashSet<int>();
+            var lostClusters = new List<int>();
+            var filesWithoutEOF = new List<string>();
+
+            // Проверяем каждый файл в директории
+            foreach (var file in directory)
+            {
+                var (correctEOF, chain) = BuildClusterChain(file.StartClusterID);
+
+                if (!correctEOF)
+                {
+                    // Если файл не имеет корректного EOF, добавляем его в список некорректных файлов
+                    filesWithoutEOF.Add(file.Name);
+                }
+
+                // Добавляем кластеры файла в список используемых
+                foreach (var clusterID in chain)
+                {
+                    usedClusters.Add(clusterID);
+                }
+            }
+
+            // Поиск потерянных кластеров (не задействованных ни в одном файле)
+            for (int i = 0; i < fileSpaceSize; i++)
+            {
+                if (fileSpace.ContainsKey(i) && !usedClusters.Contains(i) && !fileSpace[i].IsBad)
+                {
+                    lostClusters.Add(i);
+                }
+            }
+
+            return (lostClusters, filesWithoutEOF);
+        }
+
 
         /// <summary>
         /// Удаляет потерянные кластеры, а также файлы с некорректным окончанием (без EOF).
@@ -868,34 +911,73 @@ namespace FAT_FILE_SYSTEM_MODEL_DLL
         /// <param name="lostClusters">Список потерянных кластеров.</param>
         /// <param name="removedFiles">Список удалённых файлов.</param>
         /// <returns>Текстовый отчёт.</returns>
-        public string PrintLostClustersAndRemovedFiles(List<int> lostClusters, List<string> removedFiles)
+        public string PrintLostClustersAndFiles(List<int> lostClusters, List<string> removedFiles)
         {
-            var msg = new StringBuilder();
+            string msg = "";
 
             if (removedFiles != null && removedFiles.Count > 0)
             {
-                msg.AppendLine("Удалённые файлы с некорректным окончанием:");
+                msg += "Удалённые файлы с некорректным окончанием:\n";
                 foreach (var file in removedFiles)
                 {
-                    msg.AppendLine($"  - {file}");
+                    msg += $"  - {file}\n";
                 }
             }
             else
             {
-                msg.AppendLine("Нет удалённых файлов с некорректным окончанием.");
+                msg += "Нет удалённых файлов с некорректным окончанием.\n";
             }
 
             if (lostClusters != null && lostClusters.Count > 0)
             {
-                msg.AppendLine("Удалённые потерянные кластеры:");
+                msg += "Удалённые потерянные кластеры:\n";
                 foreach (var clusterID in lostClusters)
                 {
-                    msg.AppendLine($"  - Кластер {clusterID}");
+                    msg += $"  - Кластер {clusterID}\n";
                 }
             }
             else
             {
-                msg.AppendLine("Нет потерянных кластеров.");
+                msg += "Нет потерянных кластеров.\n";
+            }
+
+            return msg.ToString();
+        }
+
+        /// <summary>
+        /// Выводит информацию о потерянных кластерах и удалённых файлах с некорректным окончанием.
+        /// </summary>
+        /// <param name="lostClusters">Список потерянных кластеров.</param>
+        /// <param name="removedFiles">Список удалённых файлов.</param>
+        /// <returns>Текстовый отчёт.</returns>
+        public string PrintLostClustersAndRemovedFiles(List<int> lostClusters, List<string> removedFiles)
+        {
+            string msg = "";
+
+            if (removedFiles != null && removedFiles.Count > 0)
+            {
+                msg += "Удалённые файлы с некорректным окончанием:\n";
+                foreach (var file in removedFiles)
+                {
+                    msg += $"  - {file}\n";
+                }
+            }
+            else
+            {
+                msg += "Нет удалённых файлов с некорректным окончанием.\n";
+            }
+
+            if (lostClusters != null && lostClusters.Count > 0)
+            {
+                msg += "Удалённые потерянные кластеры:\n";
+                foreach (var clusterID in lostClusters)
+                {
+                    msg += $"  - Кластер {clusterID}\n";
+                }
+            }
+            else
+            {
+                msg += "Нет потерянных кластеров.\n";
             }
 
             return msg.ToString();

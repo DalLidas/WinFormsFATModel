@@ -9,7 +9,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="FATModel.chm" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FAT_FILE_SYSTEM_MODEL_DLL\FAT_FILE_SYSTEM_MODEL_DLL.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="FATModel.chm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
